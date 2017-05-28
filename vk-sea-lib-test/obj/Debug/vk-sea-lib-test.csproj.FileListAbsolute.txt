@@ -1,0 +1,41 @@
+c:\users\shindarev nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.exe.config
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.exe
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.pdb
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.csprojResolveAssemblyReference.cache
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.exe
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.pdb
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\obj\Debug\Interop.SHDocVw.dll
+C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.csproj.ResolveComReference.cache
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.exe.config
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\obj\Debug\Interop.SHDocVw.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.csproj.ResolveComReference.cache
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.exe
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.pdb
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\obj\Debug\vk-sea-lib-test.csprojResolveAssemblyReference.cache
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.dll.config
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.exe
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\vk-sea-lib-test.pdb
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.MachineLearning.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Math.Core.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Math.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Statistics.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\AngleSharp.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\KBCsv.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.API.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.AppConfigFactory.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.Dynamic.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.Generic.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.Russian.Basics.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Morpher.WebService.V2.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Newtonsoft.Json.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\VkNet.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.MachineLearning.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Math.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Math.Core.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Accord.Statistics.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\AngleSharp.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\KBCsv.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Newtonsoft.Json.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\VkNet.xml
