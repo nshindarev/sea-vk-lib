@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuickGraph;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace vk_sea_lib_test
         private string user_id;
 
         //обучающая выборка, функция и результирующий граф 
+        public AdjacencyGraph<long, Edge<long>> empSocialGraph;
+
         private DataTable trainingDataset;
         private Func<double[], int> func;
 
@@ -37,7 +40,8 @@ namespace vk_sea_lib_test
             //собираем оставшиеся страницы
             AlternateEmployeesSearcher searcher = new AlternateEmployeesSearcher(dt, collector.companyName, collector.vkPageId);
             searcher.findAllEmployees();
-            
+
+            this.empSocialGraph = searcher.EmployeesSocialGraph;
         }
     }
 }

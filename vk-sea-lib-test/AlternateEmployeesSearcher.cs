@@ -67,6 +67,7 @@ namespace vk_sea_lib_test
         //результирующий граф и список найденных сотрудинков
         public AdjacencyGraph<long, Edge<long>> EmployeesSocialGraph;
         public Dictionary<User, Boolean> EmployeesFoundList;
+        public List<User> allFoundEmployees;
 
         //буфер для работы с частями
         public DataTable training_dataset;
@@ -186,16 +187,8 @@ namespace vk_sea_lib_test
                 collectFriendsEmployees(employee, group_posts, group_photos);
             }
 
-            //TODO: заполнить ребра графа
-            foreach(KeyValuePair<User, Boolean> decision_about_user in EmployeesFoundList)
-            {
-                if (decision_about_user.Value)
-                {
-                    this.EmployeesSocialGraph.AddVertex(decision_about_user.Key.Id);
-                }
-            }
-
-        
+            //сохраняем в граф всех найденных сотрудников
+            fillEmployeesIntoGraph();
         }
 
         /**
@@ -277,22 +270,38 @@ namespace vk_sea_lib_test
 
                     int is_employee = this.tree.func(new double[] { r1, r3, r4, r5 });
 
-                    if (is_employee == 0) Console.WriteLine("дерево выявило не сотрудника!!!!");
-                    else if (is_employee == 1) Console.WriteLine("_____ сотрудник!!!!");
-
-                    /*int[] query = new int[] { (int)row[1], (int)row[3], (int)row[4], (int)row[5] };
-
-                    int output = tree.current_DT.Compute(query);
-                    string answer = tree.codebook.Translate("is_employee", output);
-
-                    if (answer.Equals("1"))
+                    if (is_employee == 0)
                     {
-                        EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), true);
+                        try
+                        {
+                            Thread.Sleep(100);
+
+                            EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), false);
+                            Console.WriteLine("дерево выявило не сотрудника!!!!");
+                        }
+                        catch (TooManyRequestsException req_ex)
+                        {
+                            Thread.Sleep(100);
+                            EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), false);
+                        }
+                        
                     }
-                    else
+                    else if (is_employee == 1)
                     {
-                        EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), false);
-                    }*/
+                        try
+                        {
+                            Thread.Sleep(100);
+
+                            EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), true);
+                            Console.WriteLine("_____ сотрудник!!!!");
+                        }
+                        catch(TooManyRequestsException req_ex)
+                        {
+                            Thread.Sleep(100);
+                            EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), false);
+                        }
+                        
+                    }
                 }
             }
         }
@@ -312,6 +321,84 @@ namespace vk_sea_lib_test
             analyzeNetworkTopology(affiliates);
         }
 
+
+        /**
+        *  _________________________________________
+        *  Метод заполнения графа связей сотрудников
+        *  _________________________________________
+        *  
+        */
+
+        private void fillEmployeesIntoGraph()
+        {
+            // инициализируем граф друзей для сотрудников
+            this.EmployeesSocialGraph = new AdjacencyGraph<long, Edge<long>>();
+
+            /**
+             * 
+             * 1.1) удаляем лишние поля
+             * 1.2) добавляем сотрудников в граф
+             * 
+             * 2.1) добавляем связи в граф 
+             * 
+             */
+
+            this.allFoundEmployees = new List<User>();
+            foreach (KeyValuePair<User, Boolean> decision_about_user in EmployeesFoundList)
+            {
+                if (decision_about_user.Value)
+                {
+                    allFoundEmployees.Add(decision_about_user.Key);
+                }
+            }
+            foreach(User emp in allFoundEmployees)
+            {
+                this.EmployeesSocialGraph.AddVertex(emp.Id);
+            }
+            
+
+            foreach (User decision_about_user in allFoundEmployees)
+            {
+
+                /**
+                 *  получаем список друзей выявленного сотрудника
+                 */
+
+                List<User> vertexFriends = new List<User>();
+
+                try
+                {
+                    Thread.Sleep(100);
+                    vertexFriends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
+                    {
+                        UserId = Convert.ToInt32(decision_about_user.Id),
+                        Order = FriendsOrder.Hints,
+                        Count = 100,
+                        Fields = (ProfileFields)(ProfileFields.Domain)
+
+                    }).ToList<User>();
+                }
+                catch (TooManyRequestsException ex)
+                {
+                    Thread.Sleep(300);
+                }
+
+                foreach (User vertexfriend in vertexFriends)
+                {
+                    if (this.EmployeesSocialGraph.ContainsVertex(vertexfriend.Id))
+                    {
+                        try
+                        {
+                            EmployeesSocialGraph.AddEdge(new Edge<long>(vertexfriend.Id, decision_about_user.Id));
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
 
         /**
          *  ________________________________
