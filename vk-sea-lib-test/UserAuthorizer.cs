@@ -49,7 +49,7 @@ namespace vk_sea_lib_test
             VkontakteScopeList.wall);
         
         /// <summary>
-        /// метод запускает IE и 
+        /// метод запускает IE и сохраняет access_token и user_id
         /// </summary>
         public void authorize()
         {
@@ -63,7 +63,6 @@ namespace vk_sea_lib_test
 
             Console.ReadLine();
         }
-
         private void browserThread()
         {
             EventHandlers e = new EventHandlers();
@@ -83,7 +82,6 @@ namespace vk_sea_lib_test
 
            
         }
-
         private class EventHandlers
         {
             public void OnLogPassInserted(object sender, ref object Url)
@@ -111,6 +109,8 @@ namespace vk_sea_lib_test
 
                 Console.WriteLine(UserAuthorizer.access_token);
                 Console.WriteLine(UserAuthorizer.user_id.ToString());
+
+
 
                 if (!(UserAuthorizer.access_token == "") && !(UserAuthorizer.user_id == 0))
                     UserAuthorizer.browserWaiter.Set();

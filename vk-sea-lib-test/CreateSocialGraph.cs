@@ -14,7 +14,7 @@ namespace vk_sea_lib_test
 
         //обучающая выборка, функция и результирующий граф 
         private DataTable trainingDataset;
-        public Func<double[], int> func;
+        private Func<double[], int> func;
 
 
         public CreateSocialGraph (string access_token, string user_id)
@@ -23,7 +23,7 @@ namespace vk_sea_lib_test
             this.user_id = user_id;
         }
 
-        public void parseTrainingDataset()
+        public void createSocialGraph()
         {
             //собираем обучающую выборку
             CollectingTrainingDataset collector = new CollectingTrainingDataset(this.access_token, this.user_id);
@@ -34,7 +34,10 @@ namespace vk_sea_lib_test
             DecisionTreeBuilder dt = new DecisionTreeBuilder(this.trainingDataset);
             dt.studyDT();
 
-
+            //собираем оставшиеся страницы
+            AlternateEmployeesSearcher searcher = new AlternateEmployeesSearcher(dt, collector.companyName, collector.vkPageId);
+            searcher.findAllEmployees();
+            
         }
     }
 }

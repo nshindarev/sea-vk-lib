@@ -16,7 +16,8 @@ namespace vk_sea_lib_test
             UserAuthorizer auth = new UserAuthorizer();
             auth.authorize();
 
-            CollectingTrainingDataset collectDataset = new CollectingTrainingDataset("Петер-Сервис", "57902527");
+            CreateSocialGraph socGraphCreator = new CreateSocialGraph("Петер-Сервис", "57902527");
+            socGraphCreator.createSocialGraph();
         }
     }
 }

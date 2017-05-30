@@ -1,5 +1,6 @@
 ﻿using Morpher.Generic;
 using Morpher.Russian;
+using QuickGraph;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,33 +19,29 @@ using VkNet.Utils;
 
 namespace vk_sea_lib_test
 {
-    class CollectingTrainingDataset
+    class EmployeePagesSearcher
     {
-        public CollectingTrainingDataset (string companyName, string vkPageId)
-        {
-            this.companyName = companyName;
-            this.vkPageId = vkPageId;
-        }
-        // api fields
-        private static string api_url = "https://api.vk.com/";
-        private static int app_id = 5677623;
-        private string version = "5.60";
-
-
-        // api parse config fields
-        private uint search_employees_count = 1000;
-        private uint count_per_user = 20;
-        private uint max_count = 600;
-        private int count_affiliates;
 
         // View parameter fields
         private string vk_company_page_id;
         private string company_name;
+        private int count_affiliates; 
 
-        //train and test dataset
-        public DataTable training_dataset;
+        // Constructor
+        public EmployeePagesSearcher(Func<double[], int> func, string companyName, string vkPageId)
+        {
+            this.companyName = companyName;
+            this.vkPageId = vkPageId;
+        }
+
+        //queue to analyze and employee collection in graph:
+        private DataTable affiliatesToAnalyze;
         private Dictionary<string, string> words_in_group;
         private Dictionary<long, int> likes_in_group;
+
+        //результирующий граф и список найденных сотрудинков
+        public AdjacencyGraph<long, Edge<long>> EmployeesSocialGraph;
+        public Dictionary<User, Boolean> EmployeesFoundList; 
 
         public enum VkontakteScopeList
         {
@@ -77,24 +74,26 @@ namespace vk_sea_lib_test
             VkontakteScopeList.video |
             VkontakteScopeList.wall);
 
-        public void parseInformation()
+        public void findEmployees()
         {
+            this.EmployeesFoundList = new Dictionary<User, bool>();
+            this.EmployeesSocialGraph = new AdjacencyGraph<long, Edge<long>>();
+
+
             //Init columns in dataset
-            this.training_dataset = new DataTable("decision tree trainer");
+            this.affiliatesToAnalyze = new DataTable("affiliates to analyze");
 
-            this.training_dataset.Columns.Add("vk_id", typeof(long));
+            this.affiliatesToAnalyze.Columns.Add("vk_id", typeof(long));
 
-            this.training_dataset.Columns.Add("on_web", typeof(int));
-            this.training_dataset.Columns.Add("has_firm_name", typeof(int));
-            this.training_dataset.Columns.Add("likes_counter", typeof(int));
-            this.training_dataset.Columns.Add("followed_by", typeof(int));
-            this.training_dataset.Columns.Add("following_matches", typeof(int));
-            this.training_dataset.Columns.Add("is_employee", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("on_web", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("has_firm_name", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("likes_counter", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("followed_by", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("following_matches", typeof(int));
+            this.affiliatesToAnalyze.Columns.Add("is_employee", typeof(int));
 
-            this.training_dataset.Columns.Add("first_name", typeof(string));
-            this.training_dataset.Columns.Add("last_name", typeof(string));
-
-            VkApiHolder.Api.Authorize(UserAuthorizer.access_token);
+            this.affiliatesToAnalyze.Columns.Add("first_name", typeof(string));
+            this.affiliatesToAnalyze.Columns.Add("last_name", typeof(string));
 
             // collect users with hasFirmName param
             List<User> has_firm_name_employees = VkApiHolder.Api.Users.Search(new UserSearchParams
@@ -104,7 +103,11 @@ namespace vk_sea_lib_test
 
             }).ToList();
 
-            this.count_affiliates = 4 * has_firm_name_employees.Count();
+            //insert as found employees
+            foreach (User employee in has_firm_name_employees)
+            {
+                this.EmployeesFoundList.Add(employee, true);
+            }
 
             // try to collect official group posts and photos
             List<Post> group_posts = new List<Post>();
@@ -133,181 +136,136 @@ namespace vk_sea_lib_test
                 Console.WriteLine("cannot analyze posts and photos");
             }
 
-            List<User> has_another_firm_name = new List<User>();
-            foreach (User employee in has_firm_name_employees)
+            // собираем всех друзей сотрудников;
+            foreach(User employee in has_firm_name_employees)
             {
-                if (has_another_firm_name.Count() <= this.count_affiliates)
+                List<User> employee_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
                 {
-
-                    List<User> employee_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
-                    {
-                        UserId = Convert.ToInt32(employee.Id.ToString()),
-                        Order = FriendsOrder.Hints,
-                        Fields = (ProfileFields)(ProfileFields.FirstName |
+                    UserId = Convert.ToInt32(employee.Id.ToString()),
+                    Order = FriendsOrder.Hints,
+                    Fields = (ProfileFields)(ProfileFields.FirstName |
                                                  ProfileFields.LastName |
                                                  ProfileFields.Career)
 
-                    }).ToList<User>();
-                    Thread.Sleep(100);
+                }).ToList<User>();
+                Thread.Sleep(100);
+
+                foreach (User employee_friend in employee_friends)
+                {
+                    if(!EmployeesFoundList.ContainsKey(employee_friend))
+                        this.EmployeesFoundList.Add(employee, false);
+                }
+            }
+
+            //insert dataset into datatable
+            /**
+             *    DataRow Format: 
+             *      
+             *      row[0] = vk_id
+             *      
+             *      row[1] = on_web
+             *      row[2] = has_firm_name
+             *      row[3] = likes_counter
+             *      row[4] = followed_by
+             *      row[5] = following_matches
+             *      row[6] = is_employee
+             *    
+             *      row[7] = first_name
+             *      row[8] = last_name
+             *    
+             */
+
+            foreach (KeyValuePair<User, bool> affiliate in this.EmployeesFoundList)
+            {
+                DataRow row = this.affiliatesToAnalyze.NewRow();
+
+                if (affiliate.Value)
+                {
+                    row[0] = affiliate.Key.Id;
+
+                    row[1] = 0;
+                    row[2] = 1;
+                    row[3] = 0;
+                    row[4] = 0;
+                    row[5] = 0;
+                    row[6] = 1;
+
+                    row[7] = affiliate.Key.FirstName;
+                    row[8] = affiliate.Key.LastName;
+
+                    affiliatesToAnalyze.Rows.Add(row);
+                }
+                else
+                {
+                    row[0] = affiliate.Key.Id;
+
+                    row[1] = 0;
+                    row[2] = 0;
+                    row[3] = 0;
+                    row[4] = 0;
+                    row[5] = 0;
+                    row[6] = 0;
+
+                    row[7] = affiliate.Key.FirstName;
+                    row[8] = affiliate.Key.LastName;
+
+                    affiliatesToAnalyze.Rows.Add(row);
+                }
+            }
+
+            // список cтраниц для которых has_firm_name = 0;
+            List<User> users_to_analyze = new List<User>();
+            foreach (KeyValuePair<User, bool> affiliate in EmployeesFoundList)
+            {
+                if (!affiliate.Value) users_to_analyze.Add(affiliate.Key);
+            }
+
+            makeDictionary(group_posts);
+            searchInGroupPosts(users_to_analyze);
+
+            searchInGroupLikes(group_posts, group_photos);
+            analyzeTopology();
+        }
+        public void analyzeTopology()
+        {
+            #region ANALYSE TOPOLOGY
+            Dictionary<User, List<User>> datasetfriends = new Dictionary<User, List<User>>();
+
+            foreach(KeyValuePair<User, bool> user in EmployeesFoundList)
+            {
+                if (user.Value) datasetfriends.Add(user.Key, VkApiHolder.Api.Friends.Get(new FriendsGetParams
+                {
+                    UserId = Convert.ToInt32(user.Key.Id),
+                    Order = FriendsOrder.Hints,
+                    Fields = (ProfileFields)(ProfileFields.Domain)
+
+                }).ToList<User>());
+            }
+            int totalCount;
+
+            var followers = VkApiHolder.Api.Groups.GetMembers(out totalCount, new GroupsGetMembersParams
+            {
+                GroupId = this.vk_company_page_id
+            }).ToList<User>();
 
 
-                    foreach (User employee_friend in employee_friends)
-                    {
-                        bool match_found = false;
-                        for (int i = 0; i < employee_friend.Career.Count; i++)
-                        {
-                            BoyerMoore search_by_name = new BoyerMoore(this.company_name);
-                            BoyerMoore search_by_id = new BoyerMoore(this.vkPageId.ToString());
-
-
-                            if (employee_friend.Career[i].Company != null)
-                            {
-                                if (search_by_name.Search((employee_friend.Career[i].Company)) != -1)
-                                {
-                                    match_found = true;
-                                    Console.WriteLine("match found: user id = {0}", employee_friend.LastName);
-                                }
-                            }
-                            else
-                            {
-                                if (search_by_id.Search((employee_friend.Career[i].GroupId.ToString())) != -1)
-                                {
-                                    match_found = true;
-                                }
-                            }
-                        }
-
-                        if (!match_found && employee_friend.Career.Count != 0)
-                        {
-                            has_another_firm_name.Add(employee_friend);
-                        }
-                    }
-
-
-                    //insert dataset into datatable
-                    /**
-                     *    DataRow Format: 
-                     *      
-                     *      row[0] = vk_id
-                     *      
-                     *      row[1] = on_web
-                     *      row[2] = has_firm_name
-                     *      row[3] = likes_counter
-                     *      row[4] = followed_by
-                     *      row[5] = following_matches
-                     *      row[6] = is_employee
-                     *    
-                     *      row[7] = first_name
-                     *      row[8] = last_name
-                     *    
-                     */
-
-                    foreach (User training_employee in has_firm_name_employees)
-                    {
-                        DataRow row = this.training_dataset.NewRow();
-
-                        row[0] = training_employee.Id;
-
-                        row[1] = 0;
-                        row[2] = 1;
-                        row[3] = 0;
-                        row[4] = 0;
-                        row[5] = 0;
-                        row[6] = 1;
-
-                        row[7] = training_employee.FirstName;
-                        row[8] = training_employee.LastName;
-
-                        training_dataset.Rows.Add(row);
-                    }
-
-                    foreach (User training_employee in has_another_firm_name)
-                    {
-                        DataRow row = this.training_dataset.NewRow();
-
-                        row[0] = training_employee.Id;
-
-                        row[1] = 0;
-                        row[2] = 0;
-                        row[3] = 0;
-                        row[4] = 0;
-                        row[5] = 0;
-                        row[6] = 0;
-
-                        row[7] = training_employee.FirstName;
-                        row[8] = training_employee.LastName;
-
-                        training_dataset.Rows.Add(row);
-                    }
-
-                    makeDictionary(group_posts);
-                    searchInGroupPosts(has_firm_name_employees);
-                    searchInGroupPosts(has_another_firm_name);
-
-                    searchInGroupLikes(group_posts, group_photos);
-
-                    #region ANALYSE TOPOLOGY
-                    Dictionary<User, List<User>> datasetfriends = new Dictionary<User, List<User>>();
-
-
-                    foreach (User user in has_firm_name_employees)
-                    {
-                        try
-                        {
-                            Thread.Sleep(100);
-                            var affiliate_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
-                            {
-                                UserId = Convert.ToInt32(user.Id),
-                                Order = FriendsOrder.Hints,
-                                Fields = (ProfileFields)(ProfileFields.Domain)
-
-                            }).ToList<User>();
-                            datasetfriends.Add(user, affiliate_friends);
-                        }
-                        catch(TooManyRequestsException ex)
-                        {
-                            Thread.Sleep(300);
-                        }
-                        
-                    }
-                   /* foreach (User user in has_another_firm_name)
-                    {
-                        var affiliate_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
-                        {
-                            UserId = Convert.ToInt32(user.Id),
-                            Order = FriendsOrder.Hints,
-                            Fields = (ProfileFields)(ProfileFields.Domain)
-
-                        }).ToList<User>();
-
-                        datasetfriends.Add(user, affiliate_friends);
-                    }*/
-
-
-                    int totalCount;
-                    var followers = VkApiHolder.Api.Groups.GetMembers(out totalCount, new GroupsGetMembersParams
-                    {
-                        GroupId = this.vk_company_page_id
-                    }).ToList<User>();
-
-                    var matchesFound = searchFollowingMatches(followers, datasetfriends);
-                    #endregion
+            var matchesFound = searchFollowingMatches(followers, datasetfriends);
+            #endregion
 
                     string filterExpression, sortOrder;
                     foreach (KeyValuePair<long, List<int>> user_to_update_id in matchesFound)
                     {
                         filterExpression = "vk_id = '" + user_to_update_id.Key + "'";
                         sortOrder = "vk_id DESC";
-                        DataRow[] users_found_surname = training_dataset.Select(filterExpression, sortOrder, DataViewRowState.Added);
+                        DataRow[] users_found_surname = affiliatesToAnalyze.Select(filterExpression, sortOrder, DataViewRowState.Added);
 
                         foreach (DataRow row in users_found_surname)
                         {
-                            row[5] = user_to_update_id.Value.Count;
+                            row[5] = user_to_update_id.Value;
                         }
                     }
                 }
-            }
-        }
+        
 
         /// <summary>
         /// метод ищет упоминание фамилии сотрудника в группе
@@ -338,7 +296,7 @@ namespace vk_sea_lib_test
                 {
                     filterExpression = "vk_id = '" + affiliate.Id + "'";
                     sortOrder = "vk_id DESC";
-                    DataRow[] users_found_surname = training_dataset.Select(filterExpression, sortOrder, DataViewRowState.Added);
+                    DataRow[] users_found_surname = affiliatesToAnalyze.Select(filterExpression, sortOrder, DataViewRowState.Added);
 
                     foreach (DataRow row in users_found_surname)
                     {
@@ -371,16 +329,14 @@ namespace vk_sea_lib_test
 
             try
             {
-                /*Morpher.Russian.IDeclension declension = Morpher.Factory.Russian.Declension;
+                Morpher.Russian.IDeclension declension = Morpher.Factory.Russian.Declension;
 
                 surname_declensions.Add(declension.Parse(surname).Nominative);
                 surname_declensions.Add(declension.Parse(surname).Genitive);
                 surname_declensions.Add(declension.Parse(surname).Dative);
                 surname_declensions.Add(declension.Parse(surname).Accusative);
                 surname_declensions.Add(declension.Parse(surname).Instrumental);
-                surname_declensions.Add(declension.Parse(surname).Prepositional);*/
-
-                surname_declensions.Add(surname);
+                surname_declensions.Add(declension.Parse(surname).Prepositional);
             }
             catch (Exception ex)
             {
@@ -420,7 +376,7 @@ namespace vk_sea_lib_test
             {
                 filterExpression = "vk_id = '" + likes_by_user.Key + "'";
                 sortOrder = "vk_id DESC";
-                DataRow[] users_found_surname = training_dataset.Select(filterExpression, sortOrder, DataViewRowState.Added);
+                DataRow[] users_found_surname = affiliatesToAnalyze.Select(filterExpression, sortOrder, DataViewRowState.Added);
 
                 foreach (DataRow row in users_found_surname)
                 {
@@ -550,6 +506,7 @@ namespace vk_sea_lib_test
         {
             return (from item in list1 from item2 in list2 where (item == item2) select item).ToList();
         }
+
 
         //Interface getter/setter
         public string companyName {

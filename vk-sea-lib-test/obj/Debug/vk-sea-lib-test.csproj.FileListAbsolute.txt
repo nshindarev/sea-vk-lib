@@ -39,3 +39,11 @@ C:\Users\Shindarev Nikita\Documents\Visual Studio 2015\Projects\vk-sea-lib-test\
 \\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\KBCsv.xml
 \\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\Newtonsoft.Json.xml
 \\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\VkNet.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Data.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Graphviz.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Serialization.dll
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Data.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Graphviz.xml
+\\vmware-host\Shared Folders\Documents\sea-vk-lib\vk-sea-lib-test\bin\Debug\QuickGraph.Serialization.xml

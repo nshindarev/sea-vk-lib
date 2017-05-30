@@ -18,11 +18,13 @@ namespace vk_sea_lib_test
 {
     class DecisionTreeBuilder
     {
+
         public Expression<Func<double[], int>> expression;
         public Func<double[], int> func;
+        public Codification codebook;
 
         public DecisionTree current_DT;
-        private DataTable training_dataset;
+        private static DataTable training_dataset = CollectionExtensions.OrderRandomly(training_dataset.AsEnumerable()).CopyToDataTable();
         private String pathToDataset;
 
         public DecisionTreeBuilder(String path)
@@ -31,15 +33,16 @@ namespace vk_sea_lib_test
         }
         public DecisionTreeBuilder(DataTable table)
         {
-            this.training_dataset = table;
+            DecisionTreeBuilder.training_dataset = table;
         }
 
         public void studyDT()
         {
-            generateCSV(this.training_dataset);
+            generateCSV(DecisionTreeBuilder.training_dataset);
+
             // Create a new codification codebook to
             // convert strings into integer symbols
-            Codification codebook = new Codification(training_dataset);
+            this.codebook = new Codification(training_dataset);
 
 
 
@@ -60,6 +63,7 @@ namespace vk_sea_lib_test
 
             // Translate our training data into integer symbols using our codebook:
             DataTable symbols = codebook.Apply(training_dataset);
+
             double[][] inputs = symbols.ToIntArray("on_web", "likes_counter", "followed_by", "following_matches").ToDouble();
             int[] outputs = symbols.ToIntArray("is_employee").GetColumn(0);
 
@@ -129,5 +133,34 @@ namespace vk_sea_lib_test
                 return dataTable;
             }
         }
+    }
+    public static class CollectionExtensions
+
+    {
+
+        private static Random random = new Random();
+
+        public static IEnumerable<T> OrderRandomly<T>(this IEnumerable<T> collection)
+
+        {
+
+            // Order items randomly
+
+            List<T> randomly = new List<T>(collection);
+
+            while (randomly.Count > 0)
+
+            {
+
+                Int32 index = random.Next(randomly.Count);
+
+                yield return randomly[index];
+
+                randomly.RemoveAt(index);
+
+            }
+
+        } // OrderRandomly
+
     }
 }
