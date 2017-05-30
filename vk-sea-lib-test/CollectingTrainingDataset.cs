@@ -182,129 +182,118 @@ namespace vk_sea_lib_test
                             has_another_firm_name.Add(employee_friend);
                         }
                     }
+                }
+
+            }
+          
+            //insert dataset into datatable
+            /**
+             *    DataRow Format: 
+             *      
+             *      row[0] = vk_id
+             *      
+             *      row[1] = on_web
+             *      row[2] = has_firm_name
+             *      row[3] = likes_counter
+             *      row[4] = followed_by
+             *      row[5] = following_matches
+             *      row[6] = is_employee
+             *    
+             *      row[7] = first_name
+             *      row[8] = last_name
+             *    
+             */
+
+            foreach (User training_employee in has_firm_name_employees)
+            {
+                DataRow row = this.training_dataset.NewRow();
+
+                row[0] = training_employee.Id;
+
+                row[1] = 0;
+                row[2] = 1;
+                row[3] = 0;
+                row[4] = 0;
+                row[5] = 0;
+                row[6] = 1;
+
+                row[7] = training_employee.FirstName;
+                row[8] = training_employee.LastName;
+
+                training_dataset.Rows.Add(row);
+            }
+
+            foreach (User training_employee in has_another_firm_name)
+            {
+                DataRow row = this.training_dataset.NewRow();
+
+                row[0] = training_employee.Id;
+
+                row[1] = 0;
+                row[2] = 0;
+                row[3] = 0;
+                row[4] = 0;
+                row[5] = 0;
+                row[6] = 0;
+
+                row[7] = training_employee.FirstName;
+                row[8] = training_employee.LastName;
+
+                training_dataset.Rows.Add(row);
+            }
+
+            makeDictionary(group_posts);
+            searchInGroupPosts(has_firm_name_employees);
+            searchInGroupPosts(has_another_firm_name);
+
+            searchInGroupLikes(group_posts, group_photos);
+
+            #region ANALYSE TOPOLOGY
+            Dictionary<User, List<User>> datasetfriends = new Dictionary<User, List<User>>();
 
 
-                    //insert dataset into datatable
-                    /**
-                     *    DataRow Format: 
-                     *      
-                     *      row[0] = vk_id
-                     *      
-                     *      row[1] = on_web
-                     *      row[2] = has_firm_name
-                     *      row[3] = likes_counter
-                     *      row[4] = followed_by
-                     *      row[5] = following_matches
-                     *      row[6] = is_employee
-                     *    
-                     *      row[7] = first_name
-                     *      row[8] = last_name
-                     *    
-                     */
-
-                    foreach (User training_employee in has_firm_name_employees)
+            foreach (User user in has_firm_name_employees)
+            {
+                try
+                {
+                    Thread.Sleep(100);
+                    var affiliate_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
                     {
-                        DataRow row = this.training_dataset.NewRow();
+                        UserId = Convert.ToInt32(user.Id),
+                        Order = FriendsOrder.Hints,
+                        Fields = (ProfileFields)(ProfileFields.Domain)
 
-                        row[0] = training_employee.Id;
-
-                        row[1] = 0;
-                        row[2] = 1;
-                        row[3] = 0;
-                        row[4] = 0;
-                        row[5] = 0;
-                        row[6] = 1;
-
-                        row[7] = training_employee.FirstName;
-                        row[8] = training_employee.LastName;
-
-                        training_dataset.Rows.Add(row);
-                    }
-
-                    foreach (User training_employee in has_another_firm_name)
-                    {
-                        DataRow row = this.training_dataset.NewRow();
-
-                        row[0] = training_employee.Id;
-
-                        row[1] = 0;
-                        row[2] = 0;
-                        row[3] = 0;
-                        row[4] = 0;
-                        row[5] = 0;
-                        row[6] = 0;
-
-                        row[7] = training_employee.FirstName;
-                        row[8] = training_employee.LastName;
-
-                        training_dataset.Rows.Add(row);
-                    }
-
-                    makeDictionary(group_posts);
-                    searchInGroupPosts(has_firm_name_employees);
-                    searchInGroupPosts(has_another_firm_name);
-
-                    searchInGroupLikes(group_posts, group_photos);
-
-                    #region ANALYSE TOPOLOGY
-                    Dictionary<User, List<User>> datasetfriends = new Dictionary<User, List<User>>();
-
-
-                    foreach (User user in has_firm_name_employees)
-                    {
-                        try
-                        {
-                            Thread.Sleep(100);
-                            var affiliate_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
-                            {
-                                UserId = Convert.ToInt32(user.Id),
-                                Order = FriendsOrder.Hints,
-                                Fields = (ProfileFields)(ProfileFields.Domain)
-
-                            }).ToList<User>();
-                            datasetfriends.Add(user, affiliate_friends);
-                        }
-                        catch(TooManyRequestsException ex)
-                        {
-                            Thread.Sleep(300);
-                        }
-                        
-                    }
-                   /* foreach (User user in has_another_firm_name)
-                    {
-                        var affiliate_friends = VkApiHolder.Api.Friends.Get(new FriendsGetParams
-                        {
-                            UserId = Convert.ToInt32(user.Id),
-                            Order = FriendsOrder.Hints,
-                            Fields = (ProfileFields)(ProfileFields.Domain)
-
-                        }).ToList<User>();
-
-                        datasetfriends.Add(user, affiliate_friends);
-                    }*/
-
-
-                    int totalCount;
-                    var followers = VkApiHolder.Api.Groups.GetMembers(out totalCount, new GroupsGetMembersParams
-                    {
-                        GroupId = this.vk_company_page_id
                     }).ToList<User>();
+                    datasetfriends.Add(user, affiliate_friends);
+                }
+                catch (TooManyRequestsException ex)
+                {
+                    Thread.Sleep(300);
+                }
 
-                    var matchesFound = searchFollowingMatches(followers, datasetfriends);
-                    #endregion
+            }
 
-                    string filterExpression, sortOrder;
-                    foreach (KeyValuePair<long, List<int>> user_to_update_id in matchesFound)
-                    {
-                        filterExpression = "vk_id = '" + user_to_update_id.Key + "'";
-                        sortOrder = "vk_id DESC";
-                        DataRow[] users_found_surname = training_dataset.Select(filterExpression, sortOrder, DataViewRowState.Added);
 
-                        foreach (DataRow row in users_found_surname)
-                        {
-                            row[5] = user_to_update_id.Value.Count;
-                        }
-                    }
+
+            int totalCount;
+            var followers = VkApiHolder.Api.Groups.GetMembers(out totalCount, new GroupsGetMembersParams
+            {
+                GroupId = this.vk_company_page_id
+            }).ToList<User>();
+
+            var matchesFound = searchFollowingMatches(followers, datasetfriends);
+            #endregion
+
+            string filterExpression, sortOrder;
+            foreach (KeyValuePair<long, List<int>> user_to_update_id in matchesFound)
+            {
+                filterExpression = "vk_id = '" + user_to_update_id.Key + "'";
+                sortOrder = "vk_id DESC";
+                DataRow[] users_found_surname = training_dataset.Select(filterExpression, sortOrder, DataViewRowState.Added);
+
+                foreach (DataRow row in users_found_surname)
+                {
+                    row[5] = user_to_update_id.Value.Count;
                 }
             }
         }
@@ -460,21 +449,32 @@ namespace vk_sea_lib_test
             // считаем лайки к постам группы
             foreach (var post in group_posts)
             {
-                VkCollection<long> likes = VkApiHolder.Api.Likes.GetList(new LikesGetListParams
+                try
                 {
-                    Type = LikeObjectType.Post,
-                    OwnerId = post.OwnerId,
-                    ItemId = (long)post.Id
+                    Thread.Sleep(100);
 
-                });
+                    VkCollection<long> likes = VkApiHolder.Api.Likes.GetList(new LikesGetListParams
+                    {
+                        Type = LikeObjectType.Post,
+                        OwnerId = post.OwnerId,
+                        ItemId = (long)post.Id
 
-                foreach (long user_likes_post in likes)
+                    });
+
+                    foreach (long user_likes_post in likes)
+                    {
+                        if (likes_in_group.Keys.Contains(user_likes_post)) likes_in_group[user_likes_post]++;
+                        else likes_in_group.Add(user_likes_post, 1);
+                    }
+
+                    Thread.Sleep(100);
+                }
+                catch (TooManyRequestsException ex)
                 {
-                    if (likes_in_group.Keys.Contains(user_likes_post)) likes_in_group[user_likes_post]++;
-                    else likes_in_group.Add(user_likes_post, 1);
+                    Thread.Sleep(200);
                 }
 
-                Thread.Sleep(100);
+                
             }
 
             // считаем лайки к фотографиям

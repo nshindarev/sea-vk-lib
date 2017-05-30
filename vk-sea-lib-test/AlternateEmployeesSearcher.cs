@@ -129,6 +129,8 @@ namespace vk_sea_lib_test
             List<Post> group_posts = new List<Post>();
             List<Photo> group_photos = new List<Photo>();
 
+            makeLikesDictionary(group_posts, group_photos);
+
             try
             {
                 group_posts = VkApiHolder.Api.Wall.Get(new WallGetParams()
@@ -151,6 +153,8 @@ namespace vk_sea_lib_test
             {
                 Console.WriteLine("cannot analyze posts and photos");
             }
+
+            makeDictionary(group_posts); 
 
 
             //insert dataset into datatable
@@ -210,8 +214,9 @@ namespace vk_sea_lib_test
                 {
                     UserId = Convert.ToInt32(employee.Id),
                     Order = FriendsOrder.Hints,
+                    Count = 100,
                     Fields = (ProfileFields)(ProfileFields.Domain)
-
+                    
                 }).ToList<User>();
 
                 //datasetfriends.Add(employee, affiliate_friends);
@@ -265,7 +270,17 @@ namespace vk_sea_lib_test
                 DataTable symbols = tree.codebook.Apply(training_dataset);
                 foreach(DataRow row in symbols.Rows)
                 {
-                    int[] query = new int[] { (int)row[1], (int)row[3], (int)row[4], (int)row[5] };
+                    double r1 = Convert.ToDouble(row[1]);
+                    double r3 = Convert.ToDouble(row[3]);
+                    double r4 = Convert.ToDouble(row[4]);
+                    double r5 = Convert.ToDouble(row[5]);
+
+                    int is_employee = this.tree.func(new double[] { r1, r3, r4, r5 });
+
+                    if (is_employee == 0) Console.WriteLine("дерево выявило не сотрудника!!!!");
+                    else if (is_employee == 1) Console.WriteLine("_____ сотрудник!!!!");
+
+                    /*int[] query = new int[] { (int)row[1], (int)row[3], (int)row[4], (int)row[5] };
 
                     int output = tree.current_DT.Compute(query);
                     string answer = tree.codebook.Translate("is_employee", output);
@@ -277,7 +292,7 @@ namespace vk_sea_lib_test
                     else
                     {
                         EmployeesFoundList.Add(VkApiHolder.Api.Users.Get((long)row[0], ProfileFields.LastName), false);
-                    }
+                    }*/
                 }
             }
         }
@@ -386,6 +401,10 @@ namespace vk_sea_lib_test
                 {
                     Thread.Sleep(300);
                 }
+                catch (VkApiException e)
+                {
+                    Thread.Sleep(300);
+                }
 
             }
 
@@ -414,7 +433,7 @@ namespace vk_sea_lib_test
 
                 foreach (DataRow row in users_found_surname)
                 {
-                    row[5] = user_to_update_id.Value.Count;
+                    row[5] = (user_to_update_id.Value.Count-1);
                 }
             }
         }
@@ -461,14 +480,14 @@ namespace vk_sea_lib_test
 
             try
             {
-               /* Morpher.Russian.IDeclension declension = Morpher.Factory.Russian.Declension;
+              /*  Morpher.Russian.IDeclension declension = Morpher.Factory.Russian.Declension;
 
                 surname_declensions.Add(declension.Parse(surname).Nominative);
                 surname_declensions.Add(declension.Parse(surname).Genitive);
                 surname_declensions.Add(declension.Parse(surname).Dative);
                 surname_declensions.Add(declension.Parse(surname).Accusative);
                 surname_declensions.Add(declension.Parse(surname).Instrumental);
-                surname_declensions.Add(declension.Parse(surname).Prepositional);*/
+                surname_declensions.Add(declension.Parse(surname).Prepositional); */
 
                 surname_declensions.Add(surname);
             }
@@ -503,8 +522,6 @@ namespace vk_sea_lib_test
         private void searchInGroupLikes(List<Post> group_posts, List<Photo> group_photos)
         {
             string filterExpression, sortOrder;
-            makeLikesDictionary(group_posts, group_photos);
-
 
             foreach (KeyValuePair<long, int> likes_by_user in this.likes_in_group)
             {

@@ -1,18 +1,18 @@
-﻿using Accord.MachineLearning.DecisionTrees;
-using Accord.MachineLearning.DecisionTrees.Learning;
-using Accord.Math;
-using Accord.Statistics.Filters;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.OleDb;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Accord.MachineLearning.DecisionTrees;
+using System.Data;
+using System.IO;
+using System.Data.OleDb;
+using System.Globalization;
+using Accord.Statistics.Filters;
+using Accord.MachineLearning.DecisionTrees.Learning;
+using Accord.Math;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace vk_sea_lib_test
 {
@@ -24,7 +24,7 @@ namespace vk_sea_lib_test
         public Codification codebook;
 
         public DecisionTree current_DT;
-        private static DataTable training_dataset = CollectionExtensions.OrderRandomly(training_dataset.AsEnumerable()).CopyToDataTable();
+        private static DataTable training_dataset;
         private String pathToDataset;
 
         public DecisionTreeBuilder(String path)
@@ -34,6 +34,7 @@ namespace vk_sea_lib_test
         public DecisionTreeBuilder(DataTable table)
         {
             DecisionTreeBuilder.training_dataset = table;
+            DecisionTreeBuilder.training_dataset = CollectionExtensions.OrderRandomly(training_dataset.AsEnumerable()).CopyToDataTable();
         }
 
         public void studyDT()

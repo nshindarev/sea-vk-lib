@@ -31,7 +31,7 @@ namespace vk_sea_lib_test
             this.trainingDataset = collector.training_dataset;
 
             //обучаем классификатор
-            DecisionTreeBuilder dt = new DecisionTreeBuilder(this.trainingDataset);
+            DecisionTreeBuilder dt = new DecisionTreeBuilder(collector.training_dataset);
             dt.studyDT();
 
             //собираем оставшиеся страницы
